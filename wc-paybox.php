@@ -197,7 +197,7 @@ class WC_Paybox extends WC_Payment_Gateway{
 		echo '<p>'.__('Спасибо за Ваш заказ, пожалуйста, нажмите кнопку ниже, чтобы заплатить.', 'woocommerce').'</p>';
 		$strReuestUrl = 'http://'.$_SERVER['HTTP_HOST'].'/index.php?wc-api=wc_paybox';
 		$strCurrency = get_woocommerce_currency();
-        if($strCurrency == 'RUB') $strCurrency = 'RUR';
+        if ($strCurrency == 'RUR') $strCurrency = 'RUB';
 		
         $order = new WC_Order( $order_id );
 		$arrCartItems = $order->get_items();
@@ -222,7 +222,7 @@ class WC_Paybox extends WC_Payment_Gateway{
 			'pg_testing_mode'		=> ($this->testmode == 'yes')?1:0,
 			'pg_description'		=> $strDescription,
 			'pg_user_ip'			=> $_SERVER['REMOTE_ADDR'],
-			'pg_language'			=> (WPLANG == 'ru_RU')?'ru':'en',
+			'pg_language'			=> 'ru',
 			'pg_check_url'			=> $strReuestUrl."&type=check",
 			'pg_result_url'			=> $strReuestUrl."&type=result",
 			'pg_request_method'		=> 'POST',
