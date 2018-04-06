@@ -247,7 +247,7 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
     	$this->data_to_send['pg_sig'] = md5($str);
     	unset($this->data_to_send[0], $this->data_to_send[1]);
     	$query = http_build_query($this->data_to_send);
-    	$this->url = 'https://paybox.kz/' . $url . '?' . $query;
+    	$this->url = 'https://api.paybox.money/' . $url . '?' . $query;
 
 
         // add subscription parameters
