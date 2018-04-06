@@ -240,7 +240,7 @@ class WC_Paybox extends WC_Payment_Gateway{
             $args_array[] = '<input type="hidden" name="'.esc_attr($strFieldName).'" value="'.esc_attr($strFieldValue).'" />';
         }
 
-		echo '<form action="'.esc_url("https://paybox.kz/payment.php").'" method="POST" id="paybox_payment_form">'."\n".
+		echo '<form action="'.esc_url("https://api.paybox.money/payment.php").'" method="POST" id="paybox_payment_form">'."\n".
             implode("\n", $args_array).
             '<input type="submit" class="button alt" id="submit_paybox_payment_form" value="'.__('Оплатить', 'woocommerce').'" />'. 
 //			'<a class="button cancel" href="'.$order->get_cancel_order_url().'">'.__('Отказаться от оплаты & вернуться в корзину', 'woocommerce').'</a>'."\n".
