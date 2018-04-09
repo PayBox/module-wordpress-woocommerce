@@ -2,7 +2,7 @@
 
 #### Работа модуля протестирована на WordPress версии 4.3.1 с модулем WooCommerce версии 2.4.7.
 
-Модуль интеграции платформы [WordPress](https://wordpress.org/) с платежной системой [PayBox](http://paybox.kz) для магазина [WooCommerce](http://www.woothemes.com/woocommerce/).
+Модуль интеграции платформы [WordPress](https://wordpress.org/) с платежной системой [PayBox](http://paybox.money) для магазина [WooCommerce](http://www.woothemes.com/woocommerce/).
 
 ### Инструкция
 
