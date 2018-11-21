@@ -239,18 +239,7 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
         );
     	$this->data_to_send['pg_testing_mode'] = ('yes' === $this->get_option( 'testmode' )) ? 1 : 0;
 
-    	$url = 'payment.php';
-    	ksort($this->data_to_send);
-    	array_unshift($this->data_to_send, $url);
-    	array_push($this->data_to_send, $this->merchant_key);
-    	$str = implode(';', $this->data_to_send);
-    	$this->data_to_send['pg_sig'] = md5($str);
-    	unset($this->data_to_send[0], $this->data_to_send[1]);
-    	$query = http_build_query($this->data_to_send);
-    	$this->url = 'https://api.paybox.money/' . $url . '?' . $query;
-
-
-        // add subscription parameters
+	// add subscription parameters
         if ( $this->order_contains_subscription( $order_id ) ) {
             // 2 == ad-hoc subscription type see PayBox API docs
             $this->data_to_send['subscription_type'] = '2';
@@ -276,6 +265,16 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
             $this->data_to_send['subscription_type'] = '2';
         }
 
+    	$url = 'payment.php';
+    	ksort($this->data_to_send);
+    	array_unshift($this->data_to_send, $url);
+    	array_push($this->data_to_send, $this->merchant_key);
+    	$str = implode(';', $this->data_to_send);
+    	$this->data_to_send['pg_sig'] = md5($str);
+    	unset($this->data_to_send[0], $this->data_to_send[1]);
+    	$query = http_build_query($this->data_to_send);
+    	$this->url = 'https://api.paybox.money/' . $url . '?' . $query;
+	
         $PayBox_args_array = array();
         foreach ( $this->data_to_send as $key => $value ) {
             $PayBox_args_array[] = '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '" />';
@@ -1080,10 +1079,10 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
     public function is_valid_ip( $source_ip ) {
         // Variable initialization
         $valid_hosts = array(
-            'www.PayBox.co.za',
-            'sandbox.PayBox.co.za',
-            'w1w.PayBox.co.za',
-            'w2w.PayBox.co.za',
+            'paybox.money',
+            'api.paybox.money',
+	    'paybox.kz',
+	    'api.paybox.kz'
         );
 
         $valid_ips = array();
