@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Required functions
  */
 if ( ! function_exists( 'woothemes_queue_update' ) ) {
-	require_once( 'woo-includes/woo-functions.php' );
+	require_once( 'paybox/woo-includes/woo-functions.php' );
 }
 
 /**
@@ -33,7 +33,7 @@ function woocommerce_paybox_init() {
 
 	define( 'WC_GATEWAY_PAYBOX_VERSION', '1.6.4' );
 
-	require_once( plugin_basename( 'includes/class-wc-gateway-paybox.php' ) );
+	require_once( plugin_basename( 'paybox/includes/class-wc-gateway-paybox.php' ) );
 	load_plugin_textdomain( 'woocommerce-gateway-paybox', false, trailingslashit( dirname( plugin_basename( __FILE__ ) ) ) );
 	add_filter( 'woocommerce_payment_gateways', 'woocommerce_paybox_add_gateway' );
 }
