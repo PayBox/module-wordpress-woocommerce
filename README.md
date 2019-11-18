@@ -4,6 +4,7 @@
 
 [Wordpress 4.3.x](https://github.com/PayBox/module-wordpress-woocommerce/archive/4.3.zip)  
 [Wordpress 4.9.x](https://github.com/PayBox/module-wordpress-woocommerce/archive/4.9.zip)  
+[Wordpress 5.3.x](https://github.com/PayBox/module-wordpress-woocommerce/archive/5.3.zip)  
   
 ### Инструкция  
   
