@@ -86,7 +86,7 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
         	if(isset($_REQUEST['pg_result'])) {
 				$order = wc_get_order( $_REQUEST['pg_order_id'] );
         		if($_REQUEST['pg_result'] == 1) {
-				if ($order->get_status() == 'pending') {
+				if ($order->get_status() == 'pending' || $order->get_status() == 'on-hold') {
 	        			$order->update_status('processing', __( 'PayBox Order payment success', 'woocommerce-gateway-paybox' ));
 				}
         			$orderId = (!empty($order_id))
@@ -99,7 +99,7 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
                             );
         			header('Location:/checkout/order-received/'. $orderId);
         		} else {
-				if ($order->get_status() == 'pending') {
+				if ($order->get_status() == 'pending' || $order->get_status() == 'on-hold') {
 					$order->update_status( 'failed', __( 'PayBox Order payment failed', 'woocommerce-gateway-paybox' ));
 				}
 				header('Location:/');
