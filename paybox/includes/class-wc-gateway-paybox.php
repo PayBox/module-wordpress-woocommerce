@@ -83,28 +83,28 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
         add_action( 'admin_notices', array( $this, 'admin_notices' ) );
 
         if(!empty($_REQUEST['pg_order_id'])) {
-        	if(isset($_REQUEST['pg_result'])) {
-				$order = wc_get_order( $_REQUEST['pg_order_id'] );
-        		if($_REQUEST['pg_result'] == 1) {
-				if ($order->get_status() == 'pending' || $order->get_status() == 'on-hold') {
-	        			$order->update_status('processing', __( 'PayBox Order payment success', 'woocommerce-gateway-paybox' ));
-				}
-        			$orderId = (!empty($order_id))
-        	            ? $order_id
-        	            : (!empty(self::get_order_prop( $order, 'id' ))
-                           ? self::get_order_prop( $order, 'id' )
-                           : (!empty($order->get_order_number())
-                               ? $order->get_order_number()
-                               : 0)
-                            );
-        			header('Location:/checkout/order-received/'. $orderId);
-        		} else {
-				if ($order->get_status() == 'pending' || $order->get_status() == 'on-hold') {
-					$order->update_status( 'failed', __( 'PayBox Order payment failed', 'woocommerce-gateway-paybox' ));
-				}
-				header('Location:/');
-        		}
-        	}
+            if(isset($_REQUEST['pg_result'])) {
+                $order = wc_get_order( $_REQUEST['pg_order_id'] );
+                if($_REQUEST['pg_result'] == 1) {
+                    if ($order->get_status() == 'pending' || $order->get_status() == 'on-hold') {
+                        $order->update_status('processing', __( 'PayBox Order payment success', 'woocommerce-gateway-paybox' ));
+                    }
+                    $orderId = (!empty($order_id))
+                        ? $order_id
+                        : (!empty(self::get_order_prop( $order, 'id' ))
+                            ? self::get_order_prop( $order, 'id' )
+                            : (!empty($order->get_order_number())
+                                ? $order->get_order_number()
+                                : 0)
+                        );
+                    header('Location:/checkout/order-received/'. $orderId);
+                } else {
+                    if ($order->get_status() == 'pending' || $order->get_status() == 'on-hold') {
+                        $order->update_status( 'failed', __( 'PayBox Order payment failed', 'woocommerce-gateway-paybox' ));
+                    }
+                    header('Location:/');
+                }
+            }
         }
     }
 
@@ -154,7 +154,18 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
                 'type'        => 'text',
                 'description' => __( '* Required. This is the merchant key, received from PayBox.', 'woocommerce-gateway-paybox' ),
                 'default'     => '',
-            )
+            ),
+            'ofd' => array(
+                'title'       => __( 'OFD', 'woocommerce-gateway-paybox' ),
+                'type'        => 'checkbox',
+                'description' => __( 'Enable generation of fiscal documents', 'woocommerce-gateway-paybox' ),
+                'default'     => ''
+            ),
+            'tax' => array(
+                'title'       => __( 'Type tax', 'woocommerce-gateway-paybox' ),
+                'type'        => 'text',
+                'default'     => ''
+            ),
         );
     }
 
@@ -196,9 +207,36 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
      */
     public function admin_options() {
         if ( in_array( get_woocommerce_currency(), $this->available_currencies ) ) {
-            parent::admin_options();
+            ?>
+
+            <h3><?php echo ( ! empty( $this->method_title ) ) ? $this->method_title : __( 'Settings', 'woocommerce' ) ; ?></h3>
+
+            <?php echo ( ! empty( $this->method_description ) ) ? wpautop( $this->method_description ) : ''; ?>
+
+            <script type="application/javascript">
+                jQuery(document).ready(function (){
+                    if (jQuery('input[name="woocommerce_paybox_ofd"]').is(':checked')){
+                        jQuery('input[name="woocommerce_paybox_tax"]').prop( "disabled", false );
+                    }
+                    else{
+                        jQuery('input[name="woocommerce_paybox_tax"]').prop( "disabled", true );
+                    }
+
+                    jQuery('input[name="woocommerce_paybox_ofd"]').change(function (){
+                        if (this.checked){
+                            jQuery('input[name="woocommerce_paybox_tax"]').prop( "disabled", false );
+                        }
+                        else{
+                            jQuery('input[name="woocommerce_paybox_tax"]').prop( "disabled", true );
+                        }
+                    })
+                })
+            </script>
+            <table class="form-table">
+                <?php $this->generate_settings_html(); ?>
+            </table><?php
         } else {
-        ?>
+            ?>
             <h3><?php _e( 'PayBox', 'woocommerce-gateway-paybox' ); ?></h3>
             <div class="inline error"><p><strong><?php _e( 'Gateway Disabled', 'woocommerce-gateway-paybox' ); ?></strong> <?php /* translators: 1: a href link 2: closing href */ echo sprintf( __( 'Choose KZT, RUR, USD, EUR or KGS as your store currency in %1$sGeneral Settings%2$s to enable the PayBox Gateway.', 'woocommerce-gateway-paybox' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=general' ) ) . '">', '</a>' ); ?></p></div>
             <?php
@@ -215,20 +253,27 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
 
         // Construct variables for post
         $orderId = (!empty($order_id))
-        	? $order_id
-        	: (!empty(self::get_order_prop( $order, 'id' ))
-               ? self::get_order_prop( $order, 'id' )
-               : (!empty($order->get_order_number())
-                   ? $order->get_order_number()
-                   : 0)
-        );
-        	//TODO: Понять в чем баг с $order->get_cancel_order_url()
+            ? $order_id
+            : (!empty(self::get_order_prop( $order, 'id' ))
+                ? self::get_order_prop( $order, 'id' )
+                : (!empty($order->get_order_number())
+                    ? $order->get_order_number()
+                    : 0)
+            );
+        //TODO: Понять в чем баг с $order->get_cancel_order_url()
+
+        if (method_exists($order, 'get_currency')) {
+            $currency = $order->get_currency();
+        }
+        else {
+            $currency = $order->get_order_currency();
+        }
 
         $this->data_to_send = array(
             'pg_amount'         => (int)$order->get_total(),
             'pg_description'    => sprintf( __( 'New order from %s', 'woocommerce-gateway-paybox' ), get_bloginfo( 'name' ) ),
             'pg_encoding'       => 'UTF-8',
-            'pg_currency'       => $order->get_currency(),
+            'pg_currency'       => $currency,
             'pg_user_ip'        => $_SERVER['REMOTE_ADDR'],
             'pg_lifetime'       => 86400,
             'pg_merchant_id'    => $this->merchant_id,
@@ -241,17 +286,32 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
             'pg_user_phone'     => self::get_order_prop( $order, 'billing_phone' ),
             'pg_user_contact_email' => self::get_order_prop( $order, 'billing_email' )
         );
-    	$this->data_to_send['pg_testing_mode'] = ('yes' === $this->get_option( 'testmode' )) ? 1 : 0;
+        $this->data_to_send['pg_testing_mode'] = ('yes' === $this->get_option( 'testmode' )) ? 1 : 0;
 
-    	$url = 'payment.php';
-    	ksort($this->data_to_send);
-    	array_unshift($this->data_to_send, $url);
-    	array_push($this->data_to_send, $this->merchant_key);
-    	$str = implode(';', $this->data_to_send);
-    	$this->data_to_send['pg_sig'] = md5($str);
-    	unset($this->data_to_send[0], $this->data_to_send[1]);
-    	$query = http_build_query($this->data_to_send);
-    	$this->url = 'https://api.paybox.money/' . $url . '?' . $query;
+        if ('yes' === $this->get_option('ofd')) {
+            $order = wc_get_order($order_id);
+            $tax_type = $this->get_option('tax');
+
+            foreach ($order->get_items() as $item_id => $item){
+                $this->data_to_send['pg_receipt_positions'][] = [
+                    'count' => $order->get_item_meta($item_id, '_qty', true),
+                    'name' => $item['name'],
+                    'price' => $order->get_item_meta($item_id, '_line_total', true),
+                    'tax_type' => $tax_type
+                ];
+            }
+        }
+
+        $sign_data = $this->prepare_request_data($this->data_to_send);
+
+        $url = 'payment.php';
+        ksort($sign_data);
+        array_unshift($sign_data, $url);
+        array_push($sign_data, $this->merchant_key);
+        $str = implode(';', $sign_data);
+        $this->data_to_send['pg_sig'] = md5($str);
+        $query = http_build_query($this->data_to_send);
+        $this->url = 'https://api.paybox.money/' . $url . '?' . $query;
 
 
         // add subscription parameters
@@ -275,18 +335,13 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
         // at this point we assume that the order pre order fee and that
         // we should only charge that on the order. The rest will be charged later.
         if ( $this->order_contains_pre_order( $order_id )
-             && $this->order_requires_payment_tokenization( $order_id ) ) {
+            && $this->order_requires_payment_tokenization( $order_id ) ) {
             $this->data_to_send['amount']            = $this->get_pre_order_fee( $order_id );
             $this->data_to_send['subscription_type'] = '2';
         }
 
-        $PayBox_args_array = array();
-        foreach ( $this->data_to_send as $key => $value ) {
-            $PayBox_args_array[] = '<input type="hidden" name="' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '" />';
-        }
-
         return '<form action="' . esc_url( $this->url ) . '" method="post" id="PayBox_payment_form">
-                ' . implode( '', $PayBox_args_array ) . '
+                ' . implode( '', $this->get_input($this->data_to_send) ) . '
                 <input type="submit" class="button-alt" id="submit_PayBox_payment_form" value="' . __( 'Pay via PayBox', 'woocommerce-gateway-paybox' ) . '" /> <a class="button cancel" href="' . $order->get_cancel_order_url() . '">' . __( 'Cancel order &amp; restore cart', 'woocommerce-gateway-paybox' ) . '</a>
                 <script type="text/javascript">
                     jQuery(function(){
@@ -314,6 +369,31 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
     }
 
     /**
+     * @param $data
+     * @param string $parent_input_name
+     * @return array
+     */
+    public function get_input($data, $parent_input_name = ''){
+        $result = array();
+        foreach ($data as $field_name => $field_value) {
+            $name = $field_name;
+
+            if ('' !== $parent_input_name){
+                $name = $parent_input_name.'['.$field_name.']';
+            }
+
+            if (is_array($field_value)) {
+                $result[] = implode("\n", $this->get_input($field_value, (string) $name));
+            }
+            else {
+                $result[] = '<input type="hidden" name="'.$name.'" value="' . esc_attr($field_value) . '" />';
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Process the payment and return the result.
      *
      * @since 1.0.0
@@ -323,7 +403,7 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
         if ( $this->order_contains_pre_order( $order_id )
             && $this->order_requires_payment_tokenization( $order_id )
             && ! $this->cart_contains_pre_order_fee() ) {
-                throw new Exception( 'PayBox does not support transactions without any upfront costs or fees. Please select another gateway' );
+            throw new Exception( 'PayBox does not support transactions without any upfront costs or fees. Please select another gateway' );
         }
 
         $order = wc_get_order( $order_id );
@@ -430,8 +510,8 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
 
             // Check order amount
             if ( ! $this->amounts_equal( $data['amount_gross'], self::get_order_prop( $order, 'order_total' ) )
-                 && ! $this->order_contains_pre_order( $order_id )
-                 && ! $this->order_contains_subscription( $order_id ) ) {
+                && ! $this->order_contains_pre_order( $order_id )
+                && ! $this->order_contains_subscription( $order_id ) ) {
                 $PayBox_error  = true;
                 $PayBox_error_message = PF_ERR_AMOUNT_MISMATCH;
             } elseif ( strcasecmp( $data['custom_str1'], self::get_order_prop( $order, 'order_key' ) ) != 0 ) {
@@ -467,7 +547,7 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
             if ( $this->send_debug_email ) {
                 $this->log( 'Sending email notification' );
 
-                 // Send an email
+                // Send an email
                 $subject = 'PayBox ITN error: ' . $PayBox_error_message;
                 $body =
                     "Hi,\n\n" .
@@ -570,14 +650,14 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
         }
 
         $details = "Order Details:"
-        . PHP_EOL . 'customer id:' . $customer_id
-        . PHP_EOL . 'order id:   ' . $order->get_id()
-        . PHP_EOL . 'parent id:  ' . $order->get_parent_id()
-        . PHP_EOL . 'status:     ' . $order->get_status()
-        . PHP_EOL . 'total:      ' . $order->get_total()
-        . PHP_EOL . 'currency:   ' . $order->get_currency()
-        . PHP_EOL . 'key:        ' . $order->get_order_key()
-        . "";
+            . PHP_EOL . 'customer id:' . $customer_id
+            . PHP_EOL . 'order id:   ' . $order->get_id()
+            . PHP_EOL . 'parent id:  ' . $order->get_parent_id()
+            . PHP_EOL . 'status:     ' . $order->get_status()
+            . PHP_EOL . 'total:      ' . $order->get_total()
+            . PHP_EOL . 'currency:   ' . $order->get_currency()
+            . PHP_EOL . 'key:        ' . $order->get_order_key()
+            . "";
 
         $this->log( $details );
     }
@@ -1192,9 +1272,9 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
     }
 
     /**
-    *  Show possible admin notices
-    *
-    */
+     *  Show possible admin notices
+     *
+     */
     public function admin_notices() {
         if('yes' == $this->get_option( 'enabled' )) {
             if(empty($this->merchant_id)) {
@@ -1210,4 +1290,29 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
         }
     }
 
+    /**
+     * @param $data
+     * @param string $parent_name
+     * @return array|string[]
+     */
+    private function prepare_request_data($data, $parent_name = '') {
+        if (!is_array($data)) return $data;
+
+        $result = array();
+        $i = 0;
+
+        foreach ( $data as $key => $val ) {
+            $i++;
+            $name = $parent_name . ((string) $key) . sprintf('%03d', $i);
+
+            if (is_array($val) ) {
+                $result = array_merge($result, $this->prepare_request_data($val, $name));
+                continue;
+            }
+
+            $result += array($name => (string)$val);
+        }
+
+        return $result;
+    }
 }
