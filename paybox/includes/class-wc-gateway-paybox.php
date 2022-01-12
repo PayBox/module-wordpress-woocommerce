@@ -35,7 +35,7 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
         $this->icon               = WP_PLUGIN_URL . '/' . plugin_basename( dirname( dirname( __FILE__ ) ) ) . '/assets/images/icon.png';
         $this->debug_email        = get_option('admin_email');
         $this->available_countries  = array('KZ', 'RU', 'KG');
-        $this->available_currencies = (array)apply_filters('woocommerce_gateway_paybox_available_currencies', array( 'KZT', 'RUR', 'RUB', 'USD', 'EUR', 'KGS' ) );
+        $this->available_currencies = (array)apply_filters('woocommerce_gateway_paybox_available_currencies', array( 'KZT', 'RUR', 'RUB', 'USD', 'EUR', 'KGS', 'UZS' ) );
 
         $this->supports = array(
             'products',
