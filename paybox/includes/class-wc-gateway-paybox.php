@@ -302,10 +302,12 @@ class WC_Gateway_PayBox extends WC_Payment_Gateway {
             $tax_type = $this->get_option('tax');
 
             foreach ($order->get_items() as $item_id => $item) {
+		$product = wc_get_product($item['product_id']);
+		    
                 $this->data_to_send['pg_receipt_positions'][] = [
                     'count' => $order->get_item_meta($item_id, '_qty', true),
                     'name' => $item['name'],
-                    'price' => $item->get_product()->get_price(),
+                    'price' => $product->get_price(),
                     'tax_type' => $tax_type
                 ];
             }
